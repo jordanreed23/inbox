@@ -17,7 +17,7 @@ class Message extends Component {
     if (this.state.selected) {
       return " selected";
     } else {
-      return;
+      return "";
     }
   }
 
@@ -35,6 +35,15 @@ class Message extends Component {
     }
   }
 
+  getLabels(){
+    return (
+      this.props.labels.map(label =>{
+        return (<span className="label label-warning">{label}
+        </span>);
+      })
+    )
+  }
+
   render() {
     return (<div className={this.isRead()}>
       <div className="col-xs-1">
@@ -48,8 +57,7 @@ class Message extends Component {
         </div>
       </div>
       <div className="col-xs-11">
-        <span className="label label-warning">dev</span>
-        <span className="label label-warning">gschool</span>
+        {this.getLabels()}
         <a href="#">
           {this.props.subject}
         </a>
