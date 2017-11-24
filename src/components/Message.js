@@ -2,7 +2,8 @@ import React, {Component} from 'react';
 
 class Message extends Component {
   state = {
-    selected: false
+    selected: false,
+    starred: this.props.starred
   }
 
   isRead() {
@@ -27,6 +28,13 @@ class Message extends Component {
     }));
   }
 
+  star = () => {
+    console.log('clicked');
+    this.setState((prevState) => ({
+      starred: this.toggleBool(prevState.starred)
+    }));
+  }
+
   toggleBool(state){
     if(state){
       return false;
@@ -44,6 +52,14 @@ class Message extends Component {
     )
   }
 
+  isStarred(){
+    if (this.state.starred) {
+      return "star fa fa-star";
+    }else{
+      return "star fa fa-star-o";
+    }
+  }
+
   render() {
     return (<div className={this.isRead()}>
       <div className="col-xs-1">
@@ -52,7 +68,7 @@ class Message extends Component {
             <input type="checkbox" onClick={this.selector}/>
           </div>
           <div className="col-xs-2">
-            <i className="star fa fa-star"></i>
+            <i className={this.isStarred()} onClick={this.star}></i>
           </div>
         </div>
       </div>
