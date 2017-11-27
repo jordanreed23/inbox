@@ -1,61 +1,34 @@
 import React, {Component} from 'react';
 
 class Message extends Component {
-  state = {
-    selected: false,
-    starred: this.props.starred
-  }
 
   isRead() {
     if (this.props.read) {
-      return "row message read" + this.isSelected();
+      return "row message read" + this.isSelected(" selected");
     } else {
-      return "row message unread" + this.isSelected();
+      return "row message unread" + this.isSelected(" selected");
     }
   }
 
-  isSelected() {
-    if (this.state.selected) {
-      return " selected";
+  isSelected(str) {
+    if (this.props.selected || this.props.checked) {
+      return str;
     } else {
       return "";
     }
   }
 
-  selector = () => {
-    this.setState((prevState) => ({
-      selected: this.toggleBool(prevState.selected)
-    }));
+  getLabels() {
+    return (this.props.labels.map(label => {
+      return (<span className="label label-warning">{label}
+      </span>);
+    }))
   }
 
-  star = () => {
-    console.log('clicked');
-    this.setState((prevState) => ({
-      starred: this.toggleBool(prevState.starred)
-    }));
-  }
-
-  toggleBool(state){
-    if(state){
-      return false;
-    }else{
-      return true;
-    }
-  }
-
-  getLabels(){
-    return (
-      this.props.labels.map(label =>{
-        return (<span className="label label-warning">{label}
-        </span>);
-      })
-    )
-  }
-
-  isStarred(){
-    if (this.state.starred) {
+  isStarred() {
+    if (this.props.starred) {
       return "star fa fa-star";
-    }else{
+    } else {
       return "star fa fa-star-o";
     }
   }
@@ -65,10 +38,11 @@ class Message extends Component {
       <div className="col-xs-1">
         <div className="row">
           <div className="col-xs-2">
-            <input type="checkbox" onClick={this.selector}/>
+            <input type="checkbox" checked={this.isSelected("checked")} onClick={this.props.selectedClick} //onChange={this.props.unMark}
+            />
           </div>
           <div className="col-xs-2">
-            <i className={this.isStarred()} onClick={this.star}></i>
+            <i className={this.isStarred()} onClick={this.props.starClick}></i>
           </div>
         </div>
       </div>
