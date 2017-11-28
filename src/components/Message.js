@@ -2,22 +2,6 @@ import React, {Component} from 'react';
 
 class Message extends Component {
 
-  isRead() {
-    if (this.props.read) {
-      return "row message read" + this.isSelected(" selected");
-    } else {
-      return "row message unread" + this.isSelected(" selected");
-    }
-  }
-
-  isSelected(str) {
-    if (this.props.selected || this.props.checked) {
-      return str;
-    } else {
-      return "";
-    }
-  }
-
   getLabels() {
     return (this.props.labels.map(label => {
       return (<span className="label label-warning">{label}
@@ -25,24 +9,22 @@ class Message extends Component {
     }))
   }
 
-  isStarred() {
-    if (this.props.starred) {
-      return "star fa fa-star";
-    } else {
-      return "star fa fa-star-o";
-    }
+  comparer(pro, tru, fal){
+    return pro ? tru : fal;
   }
 
   render() {
-    return (<div className={this.isRead()}>
+    return (<div className={`row message ${this.comparer(this.props.read, 'read', 'unread')} ${this.comparer(this.props.selected, 'selected', '')}`}>
       <div className="col-xs-1">
         <div className="row">
           <div className="col-xs-2">
-            <input type="checkbox" checked={this.isSelected("checked")} onClick={this.props.selectedClick} //onChange={this.props.unMark}
+            <input type="checkbox"
+            checked={this.comparer(this.props.selected, 'checked', '')}
+            onClick={this.props.selectedClick}
             />
           </div>
           <div className="col-xs-2">
-            <i className={this.isStarred()} onClick={this.props.starClick}></i>
+            <i className={`star fa ${this.comparer(this.props.starred, 'fa-star', 'fa-star-o')}`} onClick={this.props.starClick}></i>
           </div>
         </div>
       </div>
@@ -55,5 +37,7 @@ class Message extends Component {
     </div>);
   }
 }
+
+
 
 export default Message

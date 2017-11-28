@@ -1,78 +1,47 @@
 import React from 'react';
 import Messages from './Messages';
 
-let data = [
-  {
-    "id": 1,
-    "subject": "You can't input the protocol without calculating the mobile RSS protocol!",
-    "read": false,
-    "starred": true,
-    "labels": ["dev", "personal"]
-  }, {
-    "id": 2,
-    "subject": "connecting the system won't do anything, we need to input the mobile AI panel!",
-    "read": false,
-    "starred": false,
-    "selected": true,
-    "labels": []
-  }, {
-    "id": 3,
-    "subject": "Use the 1080p HTTP feed, then you can parse the cross-platform hard drive!",
-    "read": false,
-    "starred": true,
-    "labels": ["dev"]
-  }, {
-    "id": 4,
-    "subject": "We need to program the primary TCP hard drive!",
-    "read": true,
-    "starred": false,
-    "selected": true,
-    "labels": []
-  }, {
-    "id": 5,
-    "subject": "If we override the interface, we can get to the HTTP feed through the virtual EXE interface!",
-    "read": false,
-    "starred": false,
-    "labels": ["personal"]
-  }, {
-    "id": 6,
-    "subject": "We need to back up the wireless GB driver!",
-    "read": true,
-    "starred": true,
-    "labels": []
-  }, {
-    "id": 7,
-    "subject": "We need to index the mobile PCI bus!",
-    "read": true,
-    "starred": false,
-    "labels": ["dev", "personal"]
-  }, {
-    "id": 8,
-    "subject": "If we connect the sensor, we can get to the HDD port through the redundant IB firewall!",
-    "read": true,
-    "starred": true,
-    "labels": []
-  }
-]
-
 class Toolbar extends React.Component {
   constructor() {
     super();
-    for (var i = 0; i < data.length; i++) {
-      data[i].selected = false;
-    }
     this.state = {
       checked: false,
       someChecked: false,
-      data: data
+      data: []
     };
+  }
 
+  async componentDidMount() {
+    const response = await fetch('http://localhost:8082/api/messages')
+    const json = await response.json()
+    let data = json["_embedded"].messages
+    // for (var i = 0; i < data.length; i++) {
+    //   data[i].selected = false;
+    // }
+    this.setState({data: json["_embedded"].messages})
+  }
+
+  async changeItem(item, data) {
+    const response = await fetch('http://localhost:8082/api/messages', {
+      method: 'PATCH',
+      body: JSON.stringify(item),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    })
+    this.setState({data: data})
   }
 
   starClick(i) {
     let newData = this.state.data;
     newData[i].starred = !newData[i].starred
-    this.setState({data: newData})
+    let patchData = {
+      "messageIds": [this.state.data[i].id],
+      "command": "star",
+      "star": newData[i].starred
+    }
+    this.changeItem(patchData, newData)
   }
 
   selectedClick(i) {
@@ -88,23 +57,11 @@ class Toolbar extends React.Component {
       }
     }
     if (allChecked) {
-      this.setState({
-        checked: true,
-        someChecked: false,
-        data: newData
-      })
-    }else if(allUnchecked){
-      this.setState({
-        checked: false,
-        someChecked: false,
-        data: newData
-      })
+      this.setState({checked: true, someChecked: false, data: newData})
+    } else if (allUnchecked) {
+      this.setState({checked: false, someChecked: false, data: newData})
     } else {
-      this.setState({
-        checked: false,
-        someChecked: true,
-        data: newData
-      })
+      this.setState({checked: false, someChecked: true, data: newData})
     }
   }
 
@@ -123,13 +80,9 @@ class Toolbar extends React.Component {
       for (i = 0; i < newData.length; i++) {
         newData[i].selected = false;
       }
-      this.setState({checked: false,
-        someChecked: false,
-        data: newData})
+      this.setState({checked: false, someChecked: false, data: newData})
     } else {
-      this.setState({checked: true,
-        someChecked: false,
-        data: newData})
+      this.setState({checked: true, someChecked: false, data: newData})
     }
   }
 
@@ -143,31 +96,23 @@ class Toolbar extends React.Component {
     }
   }
 
-  markAsRead = () => {
+  markAsRead(isRead) {
     let newData = this.state.data;
+    let patchData = {
+      "messageIds": [],
+      "command": "read",
+      "read": isRead
+    }
     for (var i = 0; i < newData.length; i++) {
       if (newData[i].selected) {
-        newData[i].read = true;
+        newData[i].read = isRead;
+        patchData.messageIds.push(newData[i].id)
       }
     }
-    this.setState({
-      data: newData
-    })
+    this.changeItem(patchData, newData)
   }
 
-  markAsUnRead = () => {
-    let newData = this.state.data;
-    for (var i = 0; i < newData.length; i++) {
-      if (newData[i].selected) {
-        newData[i].read = false;
-      }
-    }
-    this.setState({
-      data: newData
-    })
-  }
-
-  countUnread(){
+  countUnread() {
     let count = 0;
     for (var i = 0; i < this.state.data.length; i++) {
       if (!this.state.data[i].read) {
@@ -178,64 +123,74 @@ class Toolbar extends React.Component {
   }
 
   deleteMessages = () => {
-    console.log('click');
     let newData = [];
+    let patchData = {
+      "messageIds": [],
+      "command": "delete"
+    }
     for (var i = 0; i < this.state.data.length; i++) {
-      if (!this.state.data[i].selected) {
-        newData.push(this.state.data[i])
+      if (this.state.data[i].selected) {
+        patchData.messageIds.push(this.state.data[i].id)
+      } else {
+        newData.push(this.state.data[i]);
       }
     }
-    this.setState({
-      data: newData,
-      checked: false,
-      someChecked:false
-    })
+    this.changeItem(patchData, newData)
+    this.setState({checked: false, someChecked: false})
   }
 
   addLabel = (e) => {
     let newData = this.state.data;
+    let patchData = {
+      "messageIds": [],
+      "command": "addLabel",
+      "label": e.target.value
+    }
     for (var i = 0; i < newData.length; i++) {
       if (newData[i].selected) {
         let add = true;
         for (var j = 0; j < newData[i].labels.length; j++) {
-          if(newData[i].labels[j] === e.target.value){
+          if (newData[i].labels[j] === e.target.value) {
             add = false;
           }
         }
         if (add) {
           newData[i].labels.push(e.target.value)
+          patchData.messageIds.push(newData[i].id)
         }
       }
     }
-    this.setState({
-      data: newData,
-    })
+    this.changeItem(patchData, newData)
   }
 
   removeLabel = (e) => {
     let newData = this.state.data;
+    let patchData = {
+      "messageIds": [],
+      "command": "removeLabel",
+      "label": e.target.value
+    }
     for (var i = 0; i < newData.length; i++) {
       if (newData[i].selected) {
         let remove = false;
         for (var j = 0; j < newData[i].labels.length; j++) {
-          if(newData[i].labels[j] === e.target.value){
+          if (newData[i].labels[j] === e.target.value) {
             remove = true;
             break;
           }
         }
         if (remove) {
-           newData[i].labels.splice(newData[i].labels.indexOf(e.target.value), 1)
+          newData[i].labels.splice(newData[i].labels.indexOf(e.target.value), 1);
+          patchData.messageIds.push(newData[i].id);
         }
       }
     }
-    this.setState({
-      data: newData,
-    })
+    this.changeItem(patchData, newData)
   }
 
   checkDisabled() {
     for (var i = 0; i < this.state.data.length; i++) {
-      if(this.state.data[i].selected){
+      if (this.state.data[i].selected) {
         return "";
       }
     }
@@ -255,11 +210,11 @@ class Toolbar extends React.Component {
             <i className={this.isChecked()}></i>
           </button>
 
-          <button className="btn btn-default" onClick={this.markAsRead} disabled={this.checkDisabled()}>
+          <button className="btn btn-default" onClick={() => this.markAsRead(true)} disabled={this.checkDisabled()}>
             Mark As Read
           </button>
 
-          <button className="btn btn-default" onClick={this.markAsUnRead} disabled={this.checkDisabled()}>
+          <button className="btn btn-default" onClick={() => this.markAsRead(false)} disabled={this.checkDisabled()}>
             Mark As Unread
           </button>
 
@@ -282,8 +237,7 @@ class Toolbar extends React.Component {
           </button>
         </div>
       </div>
-      <Messages data={this.state.data}
-        starClick={i => this.starClick(i)} selectedClick={i => this.selectedClick(i)}/>
+      <Messages data={this.state.data} starClick={i => this.starClick(i)} selectedClick={i => this.selectedClick(i)}/>
     </div>);
   }
 }
