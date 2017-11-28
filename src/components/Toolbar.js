@@ -1,5 +1,6 @@
 import React from 'react';
 import Messages from './Messages';
+import Compose from './Compose';
 
 class Toolbar extends React.Component {
   constructor() {
@@ -7,17 +8,14 @@ class Toolbar extends React.Component {
     this.state = {
       checked: false,
       someChecked: false,
-      data: []
+      data: [],
+      composing: false
     };
   }
 
   async componentDidMount() {
     const response = await fetch('http://localhost:8082/api/messages')
     const json = await response.json()
-    let data = json["_embedded"].messages
-    // for (var i = 0; i < data.length; i++) {
-    //   data[i].selected = false;
-    // }
     this.setState({data: json["_embedded"].messages})
   }
 
@@ -31,6 +29,18 @@ class Toolbar extends React.Component {
       }
     })
     this.setState({data: data})
+  }
+
+  async addItem(item){
+    const response = await fetch('http://localhost:8082/api/messages', {
+      method: 'POST',
+      body: JSON.stringify(item),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    })
+    this.componentDidMount();
   }
 
   starClick(i) {
@@ -197,6 +207,20 @@ class Toolbar extends React.Component {
     return "disabled";
   }
 
+  toggleCompose = () => {
+    return this.setState({
+      composing: !this.state.composing
+    })
+  }
+
+  composeMessage(e){
+    let newData = {
+      subject: e.target.subject.value,
+      body: e.target.body.value
+    }
+    this.addItem(newData)
+  }
+
   render() {
     return (<div>
       <div className="row toolbar">
@@ -205,6 +229,10 @@ class Toolbar extends React.Component {
             <span className="badge badge">{this.countUnread()}</span>
             unread messages
           </p>
+
+          <a className="btn btn-danger" onClick={this.toggleCompose}>
+            <i className="fa fa-plus"></i>
+          </a>
 
           <button className="btn btn-default" onClick={this.checkAll}>
             <i className={this.isChecked()}></i>
@@ -237,6 +265,13 @@ class Toolbar extends React.Component {
           </button>
         </div>
       </div>
+
+      {
+        this.state.composing
+          ? <Compose data={this.state.data} composeMessage={body => this.composeMessage(body)}/>
+          : null
+      }
+
       <Messages data={this.state.data} starClick={i => this.starClick(i)} selectedClick={i => this.selectedClick(i)}/>
     </div>);
   }
