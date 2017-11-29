@@ -215,11 +215,13 @@ class Toolbar extends React.Component {
   }
 
   composeMessage(e){
+    e.preventDefault()
     let newData = {
       subject: e.target.subject.value,
       body: e.target.body.value
     }
     this.addItem(newData)
+    this.toggleCompose()
   }
 
   render() {
