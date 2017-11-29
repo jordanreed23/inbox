@@ -1,6 +1,7 @@
 import React from 'react';
 import Messages from './Messages';
 import Compose from './Compose';
+const api = 'https://hypermedia-server.herokuapp.com/api/messages'
 
 class Toolbar extends React.Component {
   constructor() {
@@ -14,13 +15,13 @@ class Toolbar extends React.Component {
   }
 
   async componentDidMount() {
-    const response = await fetch('http://localhost:8082/api/messages')
+    const response = await fetch(api)
     const json = await response.json()
     this.setState({data: json["_embedded"].messages})
   }
 
   async changeItem(item, data) {
-    const response = await fetch('http://localhost:8082/api/messages', {
+    const response = await fetch(api, {
       method: 'PATCH',
       body: JSON.stringify(item),
       headers: {
@@ -32,7 +33,7 @@ class Toolbar extends React.Component {
   }
 
   async addItem(item){
-    const response = await fetch('http://localhost:8082/api/messages', {
+    const response = await fetch(api, {
       method: 'POST',
       body: JSON.stringify(item),
       headers: {
